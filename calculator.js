@@ -30,9 +30,11 @@ const dp_spanish_french_criterions = [
     "I"
 ];
 
+
 const randomCharacters = "@#%č^&æ*(è)(*ø?&ñ^%$#@ê7ç425ðë9325:~!@#";
 
 var spanish_french_mode_times = 0;
+var languageMode = false;
 
 const validCriterions = "QWERTYUIOPASDFGHJKLZXCVBNM".split("");
 
@@ -65,6 +67,52 @@ const B = [2.745, 3.390];
 const C = [2.145, 2.740];
 const D = [1.595, 2.140];
 const U = [0.000, 1.590];
+
+const gradeMessages = {
+    "A": ["Excellent!", "Very nice... now keep it"],
+    "B": ["Yeah... excellent... sure", "Better than nothing, I guess?"],
+    "C": ["Uhh... excellent..?", "Average grade"],
+    "D": ["D's get degrees!", "Not very good at all."],
+    "U": ["Short for 'U failed lol xD'", "Failed"]
+}
+
+const gradeMessagesForLanguage = {
+    "A": ["Superhuman", "You did the impossible."],
+    "B": ["Close to superhuman", "What???"],
+    "C": ["Excellent! Basically an A", "Top tier grade"],
+    "D": ["Try a little harder", "Basically a B"],
+    "U": ["Short for 'U failed lol xD'", "Failed, but I don't blame you"]
+}
+
+
+function languageModeGradeColor(grade)
+{
+    switch (grade)
+    {
+        case "A":
+            return "#FFD700";
+
+        case "B":
+            return "#b09504";
+
+        case "C":
+            return "green";
+
+        case "D":
+            return "orange";
+
+        case "U":
+            return "orangered";
+    }
+}
+
+
+/* Takes a random element from an array. */
+function randomChoice(array)
+{
+    let arrayLength = array.length;
+    return array[Math.floor(Math.random() * arrayLength)];
+}
 
 /* Calculate the arithmetic mean of all of the grades in a list. */
 function gradeAverage(grades)
@@ -193,6 +241,9 @@ function showGrades(criterion)
         let gradeString = criterionGradeToString(grade);
 
         let element = document.createElement("div");
+
+
+        
         element.className = "grade type-" + criterionGradeToString(grade);
         element.id = (i+1).toString();
         
@@ -302,6 +353,8 @@ async function dp_spanish_french_mode()
             await sleep(initial_time * Math.pow(decay_constant, i));
         }
     }
+
+    languageMode = true;
 }
 
 /* Remove the latest grade from the current criterion, then update the table. */
@@ -332,4 +385,15 @@ function addGrade(grade)
     let finalLetterGrade = determineLetterGrade();
     document.getElementById("lettergrade").className = "final-grade type-" + finalLetterGrade; 
     document.getElementById("lettergrade").innerText = finalLetterGrade;
+    if (languageMode) 
+    {
+        document.getElementById("lettergrade").style = "color: " + 
+                            languageModeGradeColor(finalLetterGrade);
+    }
+
+    let letterGradeText = languageMode ? randomChoice(gradeMessagesForLanguage[finalLetterGrade]) 
+                                    : randomChoice(gradeMessages[finalLetterGrade]);
+
+    document.getElementById("lettergrade").title = letterGradeText;
+    document.getElementById("lettergrade-text").innerText = letterGradeText;
 }
