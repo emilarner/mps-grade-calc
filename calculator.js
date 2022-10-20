@@ -46,10 +46,10 @@ const BA = 2.1;
 const MI = 1.1;
 const O = 0;
 
-const ADRange = [3.5, 4]
-const PRRange = [2.5, 3.49]
-const BARange = [1.5, 2.49]
-const MIRange = [0.1, 1.49]
+const ADRange = [3.5, 4];
+const PRRange = [2.5, 3.49];
+const BARange = [1.5, 2.49];
+const MIRange = [0.1, 1.49];
 
 
 const A = [3.40, 4];
@@ -69,20 +69,20 @@ const D = [1.595, 2.140];
 const U = [0.000, 1.590];
 
 const gradeMessages = {
-    "A": ["Excellent!", "Very nice... now keep it"],
-    "B": ["Yeah... excellent... sure", "Better than nothing, I guess?"],
-    "C": ["Uhh... excellent..?", "Average grade"],
-    "D": ["D's get degrees!", "Not very good at all."],
-    "U": ["Short for 'U failed lol xD'", "Failed"]
-}
+    "A": ["Excellent!", "Very nice... now keep it", "It can't get much better.", "an A."],
+    "B": ["Yeah... excellent... sure", "Better than nothing, I guess?", "B"],
+    "C": ["Uhh... excellent..?", "Average grade", "It's.... a C!"],
+    "D": ["D's get degrees!", "Not very good at all.", "It's a D."],
+    "U": ["Short for 'U failed lol xD'", "Failed", "U failed."]
+};
 
 const gradeMessagesForLanguage = {
-    "A": ["Superhuman", "You did the impossible."],
-    "B": ["Close to superhuman", "What???"],
-    "C": ["Excellent! Basically an A", "Top tier grade"],
-    "D": ["Try a little harder", "Basically a B"],
-    "U": ["Short for 'U failed lol xD'", "Failed, but I don't blame you"]
-}
+    "A": ["Superhuman", "You did the impossible.", "Impossible."],
+    "B": ["Close to superhuman", "What???", "Interesting..."],
+    "C": ["Excellent! Basically an A", "Top tier grade", "Relatively an A."],
+    "D": ["Try a little harder", "Basically a B", "Kinda like a B"],
+    "U": ["Short for 'U failed lol xD'", "Failed, but I don't blame you", "U failed... trying"]
+};
 
 
 function languageModeGradeColor(grade)
@@ -156,17 +156,17 @@ function determineLetterGradeFromAverage(average)
 }
 
 /* Given all criterions, calculate averages and display the letter grade. */
-function determineLetterGrade()
+function determineLetterGrade(crits)
 {
     let localSum = 0;
     let numberOfCriterions = 0;
 
-    for (const criterion in criterions)
+    for (const criterion in crits)
     {
-        if (criterions[criterion]["currentAverage"] == -1)
+        if (crits[criterion]["currentAverage"] == -1)
             continue;
 
-        localSum += determineCriterionGrade(criterions[criterion]["currentAverage"]);
+        localSum += determineCriterionGrade(crits[criterion]["currentAverage"]);
         numberOfCriterions++;
     }
 
@@ -201,6 +201,9 @@ function criterionGradeToString(grade)
 /* Determine the criterion's average grade. Note, it is not as simple as it looks... */
 function determineCriterionGrade(average)
 {
+    if (average == -1)
+        return undefined;
+
     if (isBetween(average, ADRange))
         return AD;
 
@@ -217,10 +220,27 @@ function determineCriterionGrade(average)
         return O;
 }
 
+function setCriterionAverage(criterion)
+{
+    let criterionAverage = criterionGradeToString(
+        determineCriterionGrade(criterions[criterion]["currentAverage"]
+    ));
+
+
+
+    document.getElementById("criterion-grade").innerText = criterionAverage == undefined ? 
+                                                            `Average: none yet` : 
+                                                            `Average: ${criterionAverage}`;
+    
+    if (criterionAverage != undefined)
+        document.getElementById("criterion-grade").className = `type-${criterionAverage}`;
+}
+
 /* Show the grades of the criterion. */
 function showGrades(criterion)
 {
     /* Clear the fucking grade list. */
+    document.getElementById("criterion-grade").className = "";
     document.getElementById("grades").innerHTML = "";
 
     let currentGrades = criterions[criterion]["currentGrades"];
@@ -244,13 +264,15 @@ function showGrades(criterion)
 
 
         
-        element.className = "border grade type-" + criterionGradeToString(grade);
+        element.className = "border grade type-" + gradeString;
         element.id = (i+1).toString();
         
         element.appendChild(document.createTextNode(criterionGradeToString(grade)));
         
         document.getElementById("grades").appendChild(element);
     }
+
+    setCriterionAverage(criterion);
 }
 
 /* Change the current criterion being operated on, displaying its grades. */
@@ -365,12 +387,12 @@ function popGrade()
     let currentGrades = criterions[currentCriterion]["currentGrades"];
     criterions[currentCriterion]["currentAverage"] = gradeAverage(currentGrades);
 
-    let finalLetterGrade = determineLetterGrade();
+    let finalLetterGrade = determineLetterGrade(criterions);
     
     document.getElementById("lettergrade").className = "final-grade type-" + finalLetterGrade; 
     document.getElementById("lettergrade").innerText = finalLetterGrade;
 
-    //showGrades();
+    setCriterionAverage(currentCriterion);
 }
 
 /* Add a grade, in numerical format, to the current criterion and calculate averages. */ 
@@ -382,7 +404,7 @@ function addGrade(grade)
 
     showGrades(currentCriterion);
 
-    let finalLetterGrade = determineLetterGrade();
+    let finalLetterGrade = determineLetterGrade(criterions);
     document.getElementById("lettergrade").className = "final-grade type-" + finalLetterGrade; 
     document.getElementById("lettergrade").innerText = finalLetterGrade;
     if (languageMode) 
@@ -396,4 +418,88 @@ function addGrade(grade)
 
     document.getElementById("lettergrade").title = letterGradeText;
     document.getElementById("lettergrade-text").innerText = letterGradeText;
+}
+
+
+/* Really starting to regret not using classes, but JavaScript is just such a pain... */
+/* Procedural programming, while it's good in other languages, is a punishment here. */
+/* This is where I really regret also working in a weakly typed, hardly typed language. */
+/* Python's type notation, even though it is extremely weak, would greatly help here... */
+
+/* Returns where you can get zeroes and still get the target grade */
+function zeroesPossible(criterions, target) // -> object { ... }
+{
+    /* We need a fresh copy of the criterions to do our statistical analysis. */
+    let criterionsClone = structuredClone(criterions);
+
+    let criterionNames = Object.keys(criterionsClone);
+
+    let iterator = 0; 
+    
+    /* State how many zeroes in which criterions can be taken and still receive target. */
+    let result = {
+
+    };
+
+    /* Initialize the result. */
+    for (let i = 0; i < criterionNames.length; i++)
+        result[criterionNames[i]] = 0;
+
+
+    let atLeastOne = false;
+    while (true)
+    {
+        /* Cycle, like a clock, around criterions, using modulus! */
+        let index = iterator % criterionNames.length;
+        
+        let currentGrades = criterionsClone[criterionNames[index]]["currentGrades"];
+
+        /* Add a zero to the criterion and calculate its average. */ 
+        criterionsClone[criterionNames[index]]["currentGrades"].push(O);
+        criterionsClone[criterionNames[index]]["currentAverage"] = gradeAverage(currentGrades);
+
+        /* If the letter grade changes away from our target, break: we're done. */
+        if (determineLetterGrade(criterionsClone) != target)
+        {
+            if (!atLeastOne)
+                break;
+
+            /* Try again in the criterions that worked. */
+            atLeastOne = false;
+            iterator = 0;
+            continue;
+        }
+
+        atLeastOne = true;
+
+        /* Otherwise, indicate that a zero can be taken, and increment some variables. */
+        result[criterionNames[index]]++;
+        iterator++;
+    }
+
+    return result;
+}
+
+function displayZeroesPossible()
+{
+    const validGrades = ["A", "B", "C", "D", "U"];
+    let targetGrade = prompt("What is your target letter grade?: ");
+
+    if (!validGrades.includes(targetGrade))
+    {
+        alert(`The grade '${targetGrade}' is not a valid grade.`);
+        return;
+    }
+
+    let result = zeroesPossible(criterions, targetGrade);
+    let message = 
+        `You can take the following zeroes in each criterion and still get a grade of ${targetGrade}: \n\n`;
+
+    for (const criterion in result)
+    {
+        let noZeroes = result[criterion];
+        message += `Criterion ${criterion} can take ${noZeroes}\n`;
+    }
+
+    alert(message);
 }
