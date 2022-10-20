@@ -244,7 +244,7 @@ function showGrades(criterion)
 
 
         
-        element.className = "grade type-" + criterionGradeToString(grade);
+        element.className = "border grade type-" + criterionGradeToString(grade);
         element.id = (i+1).toString();
         
         element.appendChild(document.createTextNode(criterionGradeToString(grade)));
@@ -360,7 +360,7 @@ async function dp_spanish_french_mode()
 /* Remove the latest grade from the current criterion, then update the table. */
 function popGrade()
 {
-    //document.getElementById(criterions[currentCriterion]["currentGrades"].length.toString()).remove();
+    document.getElementById(criterions[currentCriterion]["currentGrades"].length.toString()).remove();
     criterions[currentCriterion]["currentGrades"].pop();
     let currentGrades = criterions[currentCriterion]["currentGrades"];
     criterions[currentCriterion]["currentAverage"] = gradeAverage(currentGrades);
@@ -370,7 +370,7 @@ function popGrade()
     document.getElementById("lettergrade").className = "final-grade type-" + finalLetterGrade; 
     document.getElementById("lettergrade").innerText = finalLetterGrade;
 
-    showGrades();
+    //showGrades();
 }
 
 /* Add a grade, in numerical format, to the current criterion and calculate averages. */ 
