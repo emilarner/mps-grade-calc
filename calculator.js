@@ -47,13 +47,13 @@ const MI = 1.1;
 const O = 0;
 
 const ADRange = [3.5, 4];
-const PRRange = [2.5, 3.49];
-const BARange = [1.5, 2.49];
-const MIRange = [0.1, 1.49];
+const PRRange = [2.5, 3.499];
+const BARange = [1.5, 2.499];
+const MIRange = [0.1, 1.499];
 
 
 const A = [3.40, 4];
-/*        ^^^ MPS made an error in their detailing of their standard's based grading algorithm.
+/*        ^^^ MPS made an error in their detailing of their standard's based grading algorithm???
 Consider having an AD, PR, PR, and another PR.
 AD = 4; PR = 3.2
 However, the arithmetic mean of {4, 3.2, 3.2, 3.2} is 3.4.
